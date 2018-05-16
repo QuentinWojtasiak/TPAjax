@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Javascript</title>
+</head>
+
+<body>
+  <table id="users" border=1>
+    <thead>
+      <tr>
+           <th>ID</th>
+           <th>Nom</th>
+           <th>MDP</th>
+       </tr>
+    </thead>
+  </table></br>
+  <label>Nom :</label>
+  <input id="name" type="text" /></br>
+  <label>MDP :</label>
+  <input id="password" type="text" /></br>
+  <button id="addUser" type="button">Ajouter</button>
+  <h6>*Cliquez sur un utilisateur pour le supprimer</h6></br>
+  <table id="hobbies" border=1>
+      <thead>
+        <tr>
+             <th>ID</th>
+             <th>Nom</th>
+             <th>Decsription</th>
+         </tr>
+      </thead>
+    </table>
+    <h6>*Cliquez sur un hobbie pour modifier sa description</h6></br>
+
+    <script>
+
+      //Gestion des utilisateurs :
+
+      var xhr = new XMLHttpRequest();
+      xhr.onload = afterResultLoad; //Créer un tableau avec la liste des utilisateurs
+      xhr.open("GET", "http://loisirs-web-backend.cleverapps.io/users/", true);
+      xhr.send();
+
+      function afterResultLoad() {
+        var users = JSON.parse(xhr.responseText);   
+        for(var i=0;i<users.length;i++)
+          {
+            var el = document.createElement("tr");
+            el.onclick=delUsr; //Ajout d'un evenement click sur la ligne pour permettre la suppression
+            var id = document.createElement("td");
+            var nom = document.createElement("td");
+            var mdp = document.createElement("td");
+            var idText = document.createTextNode(users[i].id);
+            id.appendChild(idText);
+            var nomText = document.createTextNode(users[i].name);
+            nom.appendChild(nomText);
+            var mdpText = document.createTextNode(users[i].password);
+            mdp.appendChild(mdpText);
+            el.appendChild(id);
+            el.appendChild(nom);
+            el.appendChild(mdp);
+            document.getElementById("users").appendChild(el);
+          }
+      }
+
+      document.getElementById("addUser").onclick=addUsr;
+      function addUsr()
+      {
+        var user = {"name":document.getElementById("name").value,"password":document.getElementById("password").value}; //Objet créé avec les valeurs des zones de te txt
+        xhr = new XMLHttpRequest();
+        xhr.onload = rld; //Actualise la page après l'ajout d'un l'utilisateur
+        xhr.open("POST", "http://loisirs-web-backend.cleverapps.io/users/", true);
+        xhr.setRequestHeader("Content-type","application/json");
+        xhr.send(JSON.stringify(user)); //Transforme l'objet user en format JSON
+      }
+
+      function delUsr()
+      {
+        //this.cells représente le tableau des cellules de la ligne qui appelle cette fonction
+        if(confirm("Voulez vous supprimer "+ this.cells[1].innerText + " ?"))
+        {
+          xhr = new XMLHttpRequest();
+          xhr.onload = rld; //Actualise la page après la suppression d'un l'utilisateur
+          xhr.open("DELETE", "http://loisirs-web-backend.cleverapps.io/users/"+this.cells[0].innerText, true);
+          xhr.send();
+        }
+      }
+
+      //Gestion des hobbies :
+
+      var xhr2 = new XMLHttpRequest();
+      xhr2.onload = afterResultLoad2; //Créer un tableau avec la liste des hobbies
+      xhr2.open("GET", "http://loisirs-web-backend.cleverapps.io/hobbies/", true);
+      xhr2.send();
+
+      function afterResultLoad2() {
+        var hobbies = JSON.parse(xhr2.responseText);   
+        for(var i=0;i<hobbies.length;i++)
+          {
+            var el = document.createElement("tr");
+            el.onclick=modif;
+            var id = document.createElement("td");
+            var nom = document.createElement("td");
+            var des = document.createElement("td");
+            var idText = document.createTextNode(hobbies[i].id);
+            id.appendChild(idText);
+            var nomText = document.createTextNode(hobbies[i].name);
+            nom.appendChild(nomText);
+            var desText = document.createTextNode(hobbies[i].description);
+            des.appendChild(desText);
+            el.appendChild(id);
+            el.appendChild(nom);
+            el.appendChild(des);
+            document.getElementById("hobbies").appendChild(el);
+          }
+      }
+
+      function modif()
+      {
+        //Affiche une popup avec un prompt pour enregistrer la saisie de l'utilisateur
+        var des = prompt("Ecrivez une description pour le hobbie "+this.cells[1].innerText,this.cells[2].innerText);
+        if (des != this.cells[2].innerText) { //On test si la nouvelle description est différente de l'ancienne
+          hobbie = {"id":this.cells[0].innerText,"name":this.cells[1].innerText,"description":des};
+          xhr2 = new XMLHttpRequest();
+          xhr2.onload = rld; //Actualise la page après l'ajout d'un hobbie
+          xhr2.open("PUT", "http://loisirs-web-backend.cleverapps.io/hobbies/"+this.cells[0].innerText, true);
+          xhr2.setRequestHeader('Content-type', 'application/json');
+          xhr2.send(JSON.stringify(hobbie));
+        } 
+      }
+
+      function rld(){
+        window.location.reload(); //Permet d'actualiser la page
+      }
+
+    </script>
+
+</body>
+</html>
